@@ -1,0 +1,18 @@
+from pydantic import BaseModel, ConfigDict
+from decimal import Decimal
+from typing import Optional
+
+class ProductResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    price: Decimal
+    promo_price: Optional[Decimal] = None
+    stock: int
+    image_url: Optional[str] = None
+    images: list[str] = []
+    store_name: str
+    store_avatar: Optional[str] = None
+    category_name: str
+
+    model_config = ConfigDict(from_attributes=True)

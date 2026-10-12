@@ -1,0 +1,12 @@
+# Mencegah file kredensial ikut ter-copy ke dalam image
+.env
+.env*.local
+.git/
+.gitignore
+
+# Mencegah folder build lokal ikut membengkakkan ukuran image
+node_modules/
+.next/
+__pycache__/
+.venv/
+venv/

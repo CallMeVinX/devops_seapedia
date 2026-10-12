@@ -1,0 +1,225 @@
+"use client";
+
+import { useState, FormEvent, ChangeEvent, FocusEvent } from "react";
+import { AxiosError } from "axios";
+import Link from "next/link";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import InputField from "@/components/ui/InputField";
+import CheckboxField from "@/components/ui/CheckboxField";
+import Button from "@/components/ui/Button";
+import { validateLoginField } from "@/utils/validation";
+
+import { useRouter } from "next/navigation";
+import { useAuthStore, type Role } from "@/hooks/useAuthStore";
+import { authService } from "@/services/authService";
+import { showToast } from "@/utils/toast";
+
+interface LoginFormState {
+  email: string;
+  password: string;
+  remember: boolean;
+}
+
+export default function LoginForm() {
+  const router = useRouter();
+  const { login } = useAuthStore();
+  const [showPassword, setShowPassword] = useState(false);
+  const [form, setForm] = useState<LoginFormState>({
+    email: "",
+    password: "",
+    remember: false,
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function handleBlur(e: FocusEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    const errorMsg = validateLoginField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: errorMsg }));
+  }
+
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
+    const { name, value, type, checked } = e.target;
+    const val = type === "checkbox" ? checked : value;
+    const updatedForm = {
+      ...form,
+      [name]: val,
+    };
+    setForm(updatedForm);
+
+    if (type !== "checkbox" && (touched[name] || errors[name])) {
+      const errorMsg = validateLoginField(name, value);
+      setErrors((prev) => ({ ...prev, [name]: errorMsg }));
+    }
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const fieldsToValidate = ["email", "password"];
+    const newErrors: Record<string, string> = {};
+    const newTouched: Record<string, boolean> = {};
+
+    fieldsToValidate.forEach((field) => {
+      const val = form[field as keyof LoginFormState];
+      newErrors[field] = validateLoginField(field, typeof val === "boolean" ? "" : val);
+      newTouched[field] = true;
+    });
+
+    setTouched(newTouched);
+    setErrors(newErrors);
+
+    const hasErrors = Object.values(newErrors).some((err) => !!err);
+    if (hasErrors) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setApiError(null);
+
+    try {
+      // Login sets the auth cookie server-side; the response body is not needed here.
+      await authService.login(form.email, form.password, form.remember);
+
+      const userMe = await authService.getMe();
+
+      const loggedUser = {
+        id: userMe.id,
+        name: userMe.full_name,
+        email: userMe.email,
+      };
+
+      // The backend returns role names the store's Role union already covers; narrow the
+      // string[] response to Role[] rather than widening the store to accept arbitrary strings.
+      const roles = userMe.roles as Role[];
+      
+      // If user only has 1 role, automatically select it so the token gets the active_role claim
+      if (roles.length === 1) {
+        await authService.selectRole(roles[0]);
+      }
+      
+      login(loggedUser, roles);
+      
+      showToast.success("Berhasil", "Login berhasil!");
+      
+      // Redirect based on role if they only have 1 role
+      if (roles.length === 1) {
+        const roleUpper = roles[0].toUpperCase();
+        switch (roleUpper) {
+          case 'SELLER': router.push('/seller/dashboard'); break;
+          case 'DRIVER': router.push('/driver/dashboard'); break;
+          case 'ADMIN': router.push('/admin/dashboard'); break;
+          case 'BUYER': 
+          default:
+            router.push('/'); break;
+        }
+      } else {
+        // Redirect to home so they can see the Navbar and RoleSelectionModal
+        router.push("/");
+      }
+
+    } catch (err) {
+      const detail = (err as AxiosError<{ detail?: string }>).response?.data?.detail;
+      if (detail) {
+        setApiError(detail);
+        showToast.error("Gagal", detail);
+      } else {
+        setApiError("An unexpected error occurred. Please try again.");
+        showToast.error("Gagal", "Terjadi kesalahan yang tidak terduga.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} noValidate className="flex h-full flex-col justify-center space-y-5">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Log in to discover amazing deals and shop your favorite products.
+        </p>
+      </div>
+
+      {apiError && (
+        <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">
+          {apiError}
+        </p>
+      )}
+
+      <InputField
+        id="email"
+        name="email"
+        type="email"
+        label="Email Address"
+        placeholder="Enter your email"
+        autoComplete="email"
+        icon={<Mail className="h-4 w-4" aria-hidden="true" />}
+        value={form.email}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        error={errors.email}
+        required
+      />
+
+      <InputField
+        id="password"
+        name="password"
+        type={showPassword ? "text" : "password"}
+        label="Password"
+        placeholder="Enter your password"
+        autoComplete="current-password"
+        icon={<Lock className="h-4 w-4" aria-hidden="true" />}
+        rightElement={
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="text-gray-400 transition-colors hover:text-gray-600 cursor-pointer"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? (
+              <EyeOff className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Eye className="h-4 w-4" aria-hidden="true" />
+            )}
+          </button>
+        }
+        value={form.password}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        error={errors.password}
+        required
+      />
+
+      <div className="flex items-center justify-between">
+        <CheckboxField
+          id="remember"
+          name="remember"
+          label="Remember Me"
+          checked={form.remember}
+          onChange={handleChange}
+        />
+        <Link
+          href="/forgot-password"
+          className="text-sm font-medium text-seapedia-navy hover:underline"
+        >
+          Forgot Password?
+        </Link>
+      </div>
+
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Logging in..." : "Login"}
+      </Button>
+
+      <p className="text-center text-sm text-gray-500">
+        Don&apos;t have an account?{" "}
+        <Link href="/register" className="font-semibold text-seapedia-navy hover:underline">
+          Register
+        </Link>
+      </p>
+    </form>
+  );
+}
