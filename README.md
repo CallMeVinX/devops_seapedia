@@ -1,6 +1,6 @@
-# SeaPedia DevOps & Docker Orchestration
+# SeaPedia DevOps & Docker Management
 
-Repositori ini berisi konfigurasi orkestrasi container menggunakan Docker & Docker Compose untuk aplikasi **SeaPedia** (Frontend Next.js & Backend FastAPI).
+Repositori ini berisi konfigurasi containerization menggunakan Docker untuk aplikasi **SeaPedia** (Frontend Next.js & Backend FastAPI).
 
 ---
 
@@ -11,20 +11,21 @@ Repositori ini berisi konfigurasi orkestrasi container menggunakan Docker & Dock
 4. [Manajemen & Monitoring Container](#-manajemen--monitoring-container)
 5. [Tag & Push Docker Images ke Docker Hub](#-tag--push-docker-images-ke-docker-hub)
 6. [Arsitektur Layanan & Port](#-arsitektur-layanan--port)
+7. [💡 Troubleshooting & Tips](#-troubleshooting--tips)
 
 ---
 
 ## 🛠 Prasyarat
 Pastikan sistem Anda telah terpasang:
 - [Docker Engine & Docker Desktop](https://www.docker.com/products/docker-desktop/) (v20.10+ / v24+)
-- Docker Compose v2 (`docker compose`)
+- Git
 - Akun [Docker Hub](https://hub.docker.com/) (jika ingin push image)
 
 ---
 
 ## ⚙️ Persiapan Environment
 
-Sebelum menjalankan container, salin template `.env.example` ke file `.env` dan sesuaikan nilainya:
+Sebelum menjalankan container, salin template `.env.example` ke file `.env` di root direktori dan sesuaikan nilainya:
 
 ```bash
 # Salin file template environment
@@ -37,114 +38,154 @@ Pastikan variabel kredensial (seperti `DATABASE_URL`, `SECRET_KEY`, `SUPABASE_UR
 
 ## 🚀 Build & Menjalankan Container (Lokal)
 
-Ikuti langkah-langkah berikut untuk build dan menjalankan container secara lokal:
-
-### 1. Login ke Docker CLI
-Masuk ke akun Docker Hub Anda melalui terminal:
+### 1. Buat Docker Network (Opsional namun Disarankan)
+Agar container backend dan frontend dapat saling berkomunikasi via DNS nama container:
 ```bash
-docker login
+docker network create seapedia-network
 ```
 
-### 2. Build & Jalankan Container
-Jalankan proses build image sekaligus menyalakan container di background mode (`-d`):
-```bash
-docker compose up -d --build
-```
+---
 
-### 3. Periksa Status Container
-Pastikan kedua container (`seapedia-frontend-container` dan `seapedia-backend-container`) berstatus `Up` / `running`:
+### 2. Backend (FastAPI - Python 3.11)
+
+- **Build Image:**
+  ```bash
+  docker build -t seapedia-backend ./seapedia-backend
+  ```
+
+- **Jalankan Container:**
+  ```bash
+  docker run -d \
+    --name seapedia-backend-container \
+    --network seapedia-network \
+    -p 8000:8000 \
+    --env-file .env \
+    --restart always \
+    seapedia-backend
+  ```
+
+---
+
+### 3. Frontend (Next.js - Node 20 Multi-stage)
+
+- **Build Image:**
+  ```bash
+  docker build -t seapedia-frontend ./seapedia-frontend
+  ```
+
+- **Jalankan Container:**
+  ```bash
+  docker run -d \
+    --name seapedia-frontend-container \
+    --network seapedia-network \
+    -p 3000:3000 \
+    --env-file .env \
+    --restart always \
+    seapedia-frontend
+  ```
+
+---
+
+### 4. Periksa Status Container
+Pastikan container berjalan dengan normal:
 ```bash
-docker compose ps
+docker ps
 ```
 
 ---
 
 ## 🔍 Manajemen & Monitoring Container
 
-Berikut beberapa perintah berguna untuk memantau dan mengelola container:
+Berikut perintah-perintah praktis untuk memantau dan mengelola container:
 
-- **Melihat Log Layanan (Real-time):**
+- **Melihat Log Container (Real-time):**
   ```bash
-  # Semua layanan
-  docker compose logs -f
+  # Log Backend
+  docker logs -f seapedia-backend-container
 
-  # Hanya backend
-  docker compose logs -f backend
-
-  # Hanya frontend
-  docker compose logs -f frontend
+  # Log Frontend
+  docker logs -f seapedia-frontend-container
   ```
 
 - **Menghentikan Container:**
   ```bash
-  docker compose stop
+  docker stop seapedia-backend-container seapedia-frontend-container
   ```
 
-- **Mematikan dan Menghapus Container:**
+- **Menjalankan Kembali Container yang Dihentikan:**
   ```bash
-  docker compose down
+  docker start seapedia-backend-container seapedia-frontend-container
   ```
 
 - **Restart Container:**
   ```bash
-  docker compose restart
+  docker restart seapedia-backend-container seapedia-frontend-container
+  ```
+
+- **Menghapus Container:**
+  ```bash
+  docker rm -f seapedia-backend-container seapedia-frontend-container
   ```
 
 ---
 
 ## 📦 Tag & Push Docker Images ke Docker Hub
 
-Jika Anda ingin mempublikasikan image ke Docker Hub registry (repository: `lordjmw`):
+Jika ingin mempublikasikan image ke registry Docker Hub (`lordjmw`):
 
-### 1. Periksa Image yang Telah Dibuat
-Lihat daftar image lokal hasil build docker compose:
+### 1. Login ke Docker Hub
 ```bash
-docker images
+docker login
 ```
-> Image yang terbentuk dari docker compose biasanya memiliki nama `devops-frontend` dan `devops-backend`.
 
-### 2. Tag Image
-Berikan tag namespace Docker Hub pada image lokal:
+### 2. Build Langsung dengan Tag Registry (atau gunakan `docker tag`)
 ```bash
-# Tag image frontend
-docker tag devops-frontend lordjmw/seapedia-frontend:latest
+# Build & tag Backend
+docker build -t lordjmw/seapedia-backend:latest ./seapedia-backend
 
-# Tag image backend
-docker tag devops-backend lordjmw/seapedia-backend:latest
+# Build & tag Frontend
+docker build -t lordjmw/seapedia-frontend:latest ./seapedia-frontend
+```
+
+*Atau jika image lokal sudah ada:*
+```bash
+docker tag seapedia-backend lordjmw/seapedia-backend:latest
+docker tag seapedia-frontend lordjmw/seapedia-frontend:latest
 ```
 
 ### 3. Push Image ke Docker Hub
-Unggah image ke registry Docker Hub:
 ```bash
-# Push image frontend
-docker push lordjmw/seapedia-frontend:latest
-
-# Push image backend
+# Push Backend
 docker push lordjmw/seapedia-backend:latest
+
+# Push Frontend
+docker push lordjmw/seapedia-frontend:latest
 ```
 
 ---
 
 ## 🌐 Arsitektur Layanan & Port
 
-| Layanan | Container Name | Port Host : Container | Deskripsi | Akses URL |
+| Layanan | Container Name | Port Host : Container | Base Image | Akses URL |
 | :--- | :--- | :--- | :--- | :--- |
-| **Backend** | `seapedia-backend-container` | `8000:8000` | FastAPI Python API Server | `http://localhost:8000` |
-| **Frontend** | `seapedia-frontend-container` | `3000:3000` | Next.js Web Application | `http://localhost:3000` |
+| **Backend** | `seapedia-backend-container` | `8000:8000` | `python:3.11-slim` | `http://localhost:8000` / `/docs` |
+| **Frontend** | `seapedia-frontend-container` | `3000:3000` | `node:20-alpine` | `http://localhost:3000` |
 
 ---
 
-## 💡 Troubleshooting Ringkas
+## 💡 Troubleshooting & Tips
 
-- **Port bentrok (misal 3000 atau 8000 sudah terpakai):**
-  Ubah nilai `BACKEND_PORT` atau `FRONTEND_PORT` di file `.env`.
-- **Perubahan kode tidak muncul:**
-  Jalankan rebuild tanpa cache:
+- **Rebuild Image Bersih (Tanpa Cache):**
+  Jika terjadi perubahan kode atau dependensi yang belum ter-*reflect*, tambahkan flag `--no-cache`:
   ```bash
-  docker compose build --no-cache
-  docker compose up -d
+  docker build --no-cache -t seapedia-backend ./seapedia-backend
+  docker build --no-cache -t seapedia-frontend ./seapedia-frontend
   ```
-- **Membersihkan resource docker yang tidak terpakai:**
+- **Port Bentrok (Port 3000 atau 8000 sudah terpakai):**
+  Ubah mapping port host saat `docker run`, misalnya `-p 8080:8000` atau `-p 3001:3000`.
+- **Koneksi Antar Container:**
+  Pastikan kedua container berada dalam satu network (`seapedia-network`) agar frontend dapat mengakses backend via `http://seapedia-backend-container:8000`.
+- **Membersihkan Resource Docker yang Tidak Terpakai:**
   ```bash
   docker system prune -f
   ```
