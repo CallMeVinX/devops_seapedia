@@ -1,0 +1,124 @@
+name: CI/CD Pipeline - Containerized SeaPedia
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      custom_tag:
+        description: 'Tag versi tambahan (misal: v1.1.0)'
+        required: false
+        default: 'v1.1.0'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # =========================================================================
+  # BACKEND CI/CD (Test, Lint, Build & Push Docker Image)
+  # =========================================================================
+  backend-pipeline:
+    name: Backend CI/CD (FastAPI)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'seapedia-backend/requirements.txt'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r seapedia-backend/requirements.txt
+
+      - name: Syntax & Compilation Check (CI Validation)
+        run: |
+          python -m py_compile seapedia-backend/app/main.py
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract Metadata & Tags for Backend Image
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: callmevin/seapedia-backend
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+            type=ref,event=tag
+            type=sha,prefix=sha-,format=short
+            type=raw,value=${{ github.event.inputs.custom_tag }},enable=${{ github.event.inputs.custom_tag != '' }}
+
+      - name: Build and Push Backend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./seapedia-backend
+          file: ./seapedia-backend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # =========================================================================
+  # FRONTEND CI/CD (Build & Push Docker Image)
+  # =========================================================================
+  frontend-pipeline:
+    name: Frontend CI/CD (Next.js)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract Metadata & Tags for Frontend Image
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: callmevin/seapedia-frontend
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+            type=ref,event=tag
+            type=sha,prefix=sha-,format=short
+            type=raw,value=${{ github.event.inputs.custom_tag }},enable=${{ github.event.inputs.custom_tag != '' }}
+
+      - name: Build and Push Frontend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./seapedia-frontend
+          file: ./seapedia-frontend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

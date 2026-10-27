@@ -129,36 +129,79 @@ Berikut perintah-perintah praktis untuk memantau dan mengelola container:
 
 ---
 
-## 📦 Tag & Push Docker Images ke Docker Hub
+## 🤖 Otomatisasi CI/CD dengan GitHub Actions
 
-Jika ingin mempublikasikan image ke registry Docker Hub (`lordjmw`):
+Repositori ini telah dikonfigurasi dengan alur **CI/CD (Continuous Integration & Continuous Delivery)** menggunakan **GitHub Actions** (`.github/workflows/ci-cd.yml`). Setiap perubahan kode yang di-push atau di-tag akan memicu build otomatis, pengujian sintaks, dan pembuatan container image baru yang di-push ke Docker Hub.
+
+### 1. Konfigurasi GitHub Secrets
+Agar GitHub Actions dapat melakukan push ke Docker Hub, tambahkan 2 secrets di menu repository GitHub (**Settings > Secrets and variables > Actions > New repository secret**):
+- `DOCKERHUB_USERNAME` : Username Docker Hub Anda (contoh: `callmevin`)
+- `DOCKERHUB_TOKEN` : Access Token Docker Hub (dibuat di **Docker Hub > Account Settings > Personal access tokens**)
+
+### 2. Cara Kerja Pipeline (Triggers)
+Pipeline akan otomatis berjalan ketika:
+- **Push ke branch `main`:** Menghasilkan image dengan tag `latest` dan `sha-<commit_id>`.
+- **Push Git Tag (misal: `v1.1.0`):** Menghasilkan image dengan tag versi release `v1.1.0` dan memperbarui `latest`.
+- **Manual Trigger (workflow_dispatch):** Dapat dijalankan manual dari tab *Actions* di GitHub dengan custom tag.
+
+### 3. Merilis Fitur Baru & Tag Baru via Git Tag
+Untuk merilis versi baru (contohnya `v1.1.0`):
+```bash
+git add .
+git commit -m "feat: add healthcheck endpoint and v1.1.0 version badge"
+git tag v1.1.0
+git push origin main
+git push origin v1.1.0
+```
+Setelah di-push, buka tab **Actions** di GitHub repository untuk melihat proses build dan push otomatis ke Docker Hub.
+
+---
+
+## 📦 Menjalankan Container Hasil CI/CD (Docker Compose)
+
+Untuk menjalankan container yang telah di-push oleh pipeline CI/CD:
+
+```bash
+# Jalankan container dengan tag versi tertentu (default: v1.1.0)
+APP_TAG=v1.1.0 docker compose up -d
+
+# Atau gunakan tag latest
+APP_TAG=latest docker compose up -d
+
+# Melihat status kesehatan container (HEALTHCHECK)
+docker ps
+```
+
+---
+
+## 📦 Tag & Push Docker Images Manual (Alternatif Lokal)
+
+Jika ingin mempublikasikan image ke registry Docker Hub (`callmevin`) secara manual tanpa CI/CD:
 
 ### 1. Login ke Docker Hub
 ```bash
 docker login
 ```
 
-### 2. Build Langsung dengan Tag Registry (atau gunakan `docker tag`)
+### 2. Build Langsung dengan Tag Registry
 ```bash
 # Build & tag Backend
-docker build -t callmevin/seapedia-backend:latest ./seapedia-backend
+docker build -t callmevin/seapedia-backend:v1.1.0 ./seapedia-backend
+docker tag callmevin/seapedia-backend:v1.1.0 callmevin/seapedia-backend:latest
 
 # Build & tag Frontend
-docker build -t callmevin/seapedia-frontend:latest ./seapedia-frontend
-```
-
-*Atau jika image lokal sudah ada:*
-```bash
-docker tag seapedia-backend callmevin/seapedia-backend:latest
-docker tag seapedia-frontend callmevin/seapedia-frontend:latest
+docker build -t callmevin/seapedia-frontend:v1.1.0 ./seapedia-frontend
+docker tag callmevin/seapedia-frontend:v1.1.0 callmevin/seapedia-frontend:latest
 ```
 
 ### 3. Push Image ke Docker Hub
 ```bash
 # Push Backend
+docker push callmevin/seapedia-backend:v1.1.0
 docker push callmevin/seapedia-backend:latest
 
 # Push Frontend
+docker push callmevin/seapedia-frontend:v1.1.0
 docker push callmevin/seapedia-frontend:latest
 ```
 

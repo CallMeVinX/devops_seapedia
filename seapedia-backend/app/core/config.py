@@ -8,7 +8,7 @@ _INSECURE_DEFAULT_SECRET = "supersecretkey"
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Seapedia Backend"
-    VERSION: str = "1.0.0"
+    VERSION: str = "1.1.0"
     API_V1_STR: str = "/api"
     ENVIRONMENT: str = "development"
 

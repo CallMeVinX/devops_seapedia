@@ -1,7 +1,209 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-seapedia-navy: #0F1E3D;
   --color-seapedia-navy-light: #1E335E;
   --color-seapedia-bg: #F6F5FB;
+}
+
+/* Transisi halus ketika beralih tema */
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* =========================================================================
+   SISTEM DARK MODE MENYELURUH (CART, REVIEWS, PRODUK, FORMS, KARTU)
+   ========================================================================= */
+
+/* 1. Background Dasar Halaman */
+.dark body {
+  background-color: #0b1120 !important;
+  color: #f8fafc !important;
+}
+
+.dark main {
+  background-color: transparent !important;
+}
+
+/* 2. Permukaan Kartu & Container (termasuk variant opacity seperti bg-white/80, bg-slate-50/50) */
+.dark .bg-white,
+.dark [class*="bg-white"] {
+  background-color: #0f172a !important;
+}
+
+.dark .bg-slate-50,
+.dark [class*="bg-slate-50"] {
+  background-color: #0b1120 !important;
+}
+
+.dark .bg-slate-100,
+.dark [class*="bg-slate-100"] {
+  background-color: #1e293b !important;
+}
+
+.dark .bg-slate-200,
+.dark [class*="bg-slate-200"] {
+  background-color: #334155 !important;
+}
+
+.dark .bg-blue-50,
+.dark [class*="bg-blue-50"] {
+  background-color: rgba(30, 58, 138, 0.25) !important;
+}
+
+.dark .bg-gray-50,
+.dark [class*="bg-gray-50"] {
+  background-color: #0b1120 !important;
+}
+
+.dark .bg-gray-100,
+.dark [class*="bg-gray-100"] {
+  background-color: #1e293b !important;
+}
+
+.dark .bg-seapedia-bg {
+  background-color: #0b1120 !important;
+}
+
+/* 3. Teks Judul & Teks Gelap Utama (Diubah menjadi Terang / Putih di Dark Mode) */
+.dark .text-slate-950,
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-gray-950,
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-blue-950,
+.dark .text-blue-900,
+.dark .text-seapedia-navy {
+  color: #f8fafc !important;
+}
+
+/* 4. Teks Menengah / Paragraf / Deskripsi */
+.dark .text-slate-700,
+.dark .text-gray-700 {
+  color: #e2e8f0 !important;
+}
+
+.dark .text-slate-600,
+.dark .text-gray-600 {
+  color: #cbd5e1 !important;
+}
+
+/* 5. Teks Muted / Tanggal / Label Sekunder */
+.dark .text-slate-500,
+.dark .text-gray-500 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-400,
+.dark .text-gray-400 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-300,
+.dark .text-gray-300 {
+  color: #cbd5e1 !important;
+}
+
+/* 6. Border & Garis Pembatas (Dividers & Rings) */
+.dark .border,
+.dark .border-t,
+.dark .border-b,
+.dark .border-l,
+.dark .border-r,
+.dark .border-white,
+.dark [class*="border-white"],
+.dark .border-slate-50,
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300,
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark [class*="border-slate-"],
+.dark [class*="border-gray-"],
+.dark [class*="border-blue-1"],
+.dark [class*="border-blue-2"],
+.dark [class*="border-emerald-1"],
+.dark [class*="border-emerald-2"],
+.dark [class*="border-amber-1"],
+.dark [class*="border-amber-2"],
+.dark [class*="border-purple-1"],
+.dark [class*="border-purple-2"] {
+  border-color: #1e293b !important;
+}
+
+.dark .ring-white,
+.dark [class*="ring-white"] {
+  --tw-ring-color: #1e293b !important;
+}
+
+.dark [class*="divide-"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1e293b !important;
+}
+
+.dark hr {
+  border-color: #1e293b !important;
+}
+
+/* 7. Input Form, Textarea & Focus States */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark textarea,
+.dark select {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  background-color: #1e293b !important;
+  border-color: #3b82f6 !important;
+  color: #f8fafc !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* 8. Hover States */
+.dark [class*="hover:bg-slate-50"]:hover {
+  background-color: #1e293b !important;
+}
+
+.dark [class*="hover:bg-slate-100"]:hover {
+  background-color: #1e293b !important;
+}
+
+.dark [class*="hover:bg-slate-200"]:hover {
+  background-color: #334155 !important;
+}
+
+.dark [class*="hover:text-slate-900"]:hover {
+  color: #ffffff !important;
+}
+
+/* 9. Gradients & Shadow */
+.dark .from-slate-100 {
+  --tw-gradient-from: #1e293b !important;
+}
+
+.dark .to-slate-200 {
+  --tw-gradient-to: #334155 !important;
+}
+
+.dark [class*="from-blue-50"] {
+  --tw-gradient-from: rgba(15, 23, 42, 0.8) !important;
+}
+
+.dark [class*="shadow-"] {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6) !important;
 }

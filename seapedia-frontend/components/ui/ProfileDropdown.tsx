@@ -70,9 +70,9 @@ export const ProfileDropdown = () => {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className={`flex items-center gap-2 text-sm font-medium transition-all p-1.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${dropdownOpen ? 'bg-slate-100 text-blue-700' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'}`}
+        className={`flex items-center gap-2 text-sm font-medium transition-all p-1.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${dropdownOpen ? 'bg-slate-100 dark:bg-slate-800 text-blue-700 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
       >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-700 to-blue-500 flex items-center justify-center text-white font-bold shadow-inner ring-2 ring-white overflow-hidden">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-700 to-blue-500 flex items-center justify-center text-white font-bold shadow-inner ring-2 ring-white dark:ring-slate-800 overflow-hidden">
           {user.avatar_url ? (
             <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
           ) : (
@@ -84,8 +84,8 @@ export const ProfileDropdown = () => {
       </button>
 
       {dropdownOpen && (
-        <div className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] py-2 z-50 transform origin-top-right transition-all ease-out duration-200 animate-in fade-in slide-in-from-top-2">
-          <div className="px-4 py-3 border-b border-slate-100/80 mb-1 flex items-center gap-3">
+        <div className="absolute right-0 mt-3 w-64 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] py-2 z-50 transform origin-top-right transition-all ease-out duration-200 animate-in fade-in slide-in-from-top-2">
+          <div className="px-4 py-3 border-b border-slate-100/80 dark:border-slate-800 mb-1 flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-700 to-blue-500 flex items-center justify-center text-white font-bold shadow-sm shrink-0 overflow-hidden">
               {user.avatar_url ? (
                 <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />

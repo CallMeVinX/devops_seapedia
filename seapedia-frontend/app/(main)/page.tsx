@@ -6,11 +6,19 @@ import HomeProductCard from "@/components/product/HomeProductCard";
 import { ReviewCard, Review } from "@/components/ui/ReviewCard";
 import { ReviewForm } from "@/components/ui/ReviewForm";
 
+export const dynamic = 'force-dynamic';
+
+const getApiUrl = () => {
+  const rawUrl = process.env.INTERNAL_API_URL || 'http://seapedia-backend-container:8000/api';
+  const baseUrl = rawUrl.replace(/\/$/, '');
+  return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+};
+
 async function getProducts() {
   try {
-    // Implement Incremental Static Regeneration (ISR) to cache products for 60 seconds
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, { 
-      next: { revalidate: 60 } 
+    const apiUrl = getApiUrl();
+    const res = await fetch(`${apiUrl}/products`, { 
+      cache: 'no-store' 
     });
     if (!res.ok) return [];
     return await res.json();
@@ -22,8 +30,9 @@ async function getProducts() {
 
 async function getReviews() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reviews`, { 
-      next: { revalidate: 30 } 
+    const apiUrl = getApiUrl();
+    const res = await fetch(`${apiUrl}/reviews`, { 
+      cache: 'no-store' 
     });
     if (!res.ok) return [];
     return await res.json();

@@ -8,6 +8,7 @@ import { LayoutDashboard, Truck, Wallet, FileText, Home } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import Button from '@/components/ui/Button';
 import { RoleSwitcher } from '@/components/ui/RoleSwitcher';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 const DRIVER_NAVIGATION = [
   { name: 'Dashboard', href: '/driver/dashboard', icon: LayoutDashboard },
@@ -43,7 +44,7 @@ export default function DriverLayout({ children }: { children: React.ReactNode }
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       {/* Sidebar - Matching Seller Theme */}
-      <aside className="w-full md:w-64 bg-white border-r border-slate-200 flex-shrink-0 md:sticky md:top-0 md:h-screen overflow-y-auto">
+      <aside className="w-full md:w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-shrink-0 md:sticky md:top-0 md:h-screen overflow-y-auto transition-colors">
         <div className="p-6 h-full flex flex-col min-h-max">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center shrink-0">
@@ -80,8 +81,11 @@ export default function DriverLayout({ children }: { children: React.ReactNode }
             })}
           </nav>
 
-          <div className="mt-auto pt-8 space-y-4">
-            <RoleSwitcher />
+          <div className="mt-auto pt-6 space-y-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between gap-2">
+              <RoleSwitcher />
+              <ThemeToggle />
+            </div>
             <button
               onClick={async () => {
                 try {

@@ -10,6 +10,7 @@ import { LayoutDashboard, Store, Package, Inbox, Loader2, Tag } from 'lucide-rea
 import { EmptyState } from '@/components/ui/EmptyState';
 import Button from '@/components/ui/Button';
 import { RoleSwitcher } from '@/components/ui/RoleSwitcher';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Home } from 'lucide-react';
 
 const SELLER_NAVIGATION = [
@@ -71,7 +72,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-white border-r border-slate-200 flex-shrink-0 md:sticky md:top-0 md:h-screen overflow-y-auto">
+      <aside className="w-full md:w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-shrink-0 md:sticky md:top-0 md:h-screen overflow-y-auto transition-colors">
         <div className="p-6 h-full flex flex-col min-h-max">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
@@ -108,8 +109,11 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
             })}
           </nav>
 
-          <div className="mt-auto pt-8 space-y-4">
-            <RoleSwitcher />
+          <div className="mt-auto pt-6 space-y-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between gap-2">
+              <RoleSwitcher />
+              <ThemeToggle />
+            </div>
             <button
               onClick={async () => {
                 try {

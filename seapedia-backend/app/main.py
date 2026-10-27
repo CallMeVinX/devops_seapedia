@@ -43,13 +43,27 @@ app.include_router(level4_core.router, prefix=settings.API_V1_STR)
 app.include_router(level5_dashboards.router, prefix=settings.API_V1_STR)
 app.include_router(level6_admin.router, prefix=settings.API_V1_STR)
 
+@app.get("/api/health")
+async def health_check():
+    """
+    Health check endpoint returning service status, project name, version, and server timestamp.
+    Used by container orchestrators, Docker HEALTHCHECK, and monitoring tools.
+    """
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "version": settings.VERSION,
+        "environment": settings.ENVIRONMENT,
+        "timestamp": time.time(),
+    }
+
 @app.get("/")
 async def read_root():
     """
     Serves as the primary health check endpoint for the API.
     Used by load balancers and deployment orchestrators (like Kubernetes) to verify that the backend application is alive and ready to receive traffic.
     """
-    return {"message": "Seapedia Backend is running"}
+    return {"message": "Seapedia Backend is running", "version": settings.VERSION}
 
 if __name__ == "__main__":
     import uvicorn

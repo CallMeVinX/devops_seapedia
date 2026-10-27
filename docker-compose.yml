@@ -1,0 +1,52 @@
+services:
+  seapedia-backend:
+    image: callmevin/seapedia-backend:${APP_TAG:-v1.1.0}
+    build:
+      context: ./seapedia-backend
+      dockerfile: Dockerfile
+    container_name: seapedia-backend-container
+    restart: always
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    env_file:
+      - ./seapedia-backend/.env
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - seapedia-network
+
+  seapedia-frontend:
+    image: callmevin/seapedia-frontend:${APP_TAG:-v1.1.0}
+    build:
+      context: ./seapedia-frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000/api}
+        - INTERNAL_API_URL=http://seapedia-backend-container:8000/api
+    container_name: seapedia-frontend-container
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - INTERNAL_API_URL=http://seapedia-backend-container:8000/api
+    env_file:
+      - ./seapedia-frontend/.env
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      seapedia-backend:
+        condition: service_healthy
+    networks:
+      - seapedia-network
+
+networks:
+  seapedia-network:
+    driver: bridge

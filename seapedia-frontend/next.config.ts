@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output : "standalone",
+  output: "standalone",
   images: {
     remotePatterns: [
       {
@@ -12,10 +12,13 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
+    const rawUrl = process.env.INTERNAL_API_URL || 'http://seapedia-backend-container:8000/api';
+    const baseUrl = rawUrl.replace(/\/$/, '');
+    const apiUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
     return [
       {
         source: '/api/:path*',
-        destination: 'http://seapedia-backend-container:8000/api/:path*',
+        destination: `${apiUrl}/:path*`,
       },
     ];
   },

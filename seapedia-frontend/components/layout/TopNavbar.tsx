@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import { ProfileDropdown } from '@/components/ui/ProfileDropdown';
 import { RoleSwitcher } from '@/components/ui/RoleSwitcher';
 import { useCartStore } from '@/hooks/useCartStore';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export const TopNavbar = () => {
   const router = useRouter();
@@ -38,7 +39,7 @@ export const TopNavbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+    <nav className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 gap-4 sm:gap-6">
           
@@ -71,19 +72,20 @@ export const TopNavbar = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-full leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-transparent sm:text-sm transition-all"
+                className="block w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-700 rounded-full leading-5 bg-slate-50 dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-600 focus:border-transparent sm:text-sm text-slate-900 dark:text-slate-100 transition-all"
                 placeholder="Cari produk..."
               />
             </div>
           </form>
 
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <ThemeToggle />
             {!user ? (
               <>
-                <Link href="/login" className="p-2 text-slate-600 hover:text-blue-700 transition-colors" title="Cart">
+                <Link href="/login" className="p-2 text-slate-600 hover:text-blue-700 dark:text-slate-300 dark:hover:text-blue-400 transition-colors" title="Cart">
                   <ShoppingCart className="h-5 w-5" />
                 </Link>
-                <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
+                <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
                 <div className="flex items-center gap-2 sm:gap-3">
                   <Link href="/login">
                     <Button variant="secondary" className="px-3 sm:px-5 py-1.5 sm:py-2 text-sm">Login</Button>
@@ -97,7 +99,7 @@ export const TopNavbar = () => {
               <>
                 {activeRole?.toLowerCase() === 'buyer' && (
                   <div className="flex items-center mr-1 sm:mr-4">
-                    <Link href="/buyer/cart" className="relative p-2 text-slate-500 hover:text-blue-700 transition-colors" title="Keranjang">
+                    <Link href="/buyer/cart" className="relative p-2 text-slate-500 hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-400 transition-colors" title="Keranjang">
                       <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
                       {totalItems > 0 && (
                         <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">
@@ -111,7 +113,7 @@ export const TopNavbar = () => {
                 <div className="hidden sm:block">
                   <RoleSwitcher />
                 </div>
-                <div className="h-6 w-px bg-slate-200 hidden sm:block mx-1"></div>
+                <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block mx-1"></div>
                 <ProfileDropdown />
               </>
             )}
@@ -136,7 +138,11 @@ export const TopNavbar = () => {
 
         {/* Mobile Nav Links Dropdown */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden flex flex-col gap-2 px-2 pb-4 border-t border-slate-100 pt-4">
+          <div className="lg:hidden flex flex-col gap-2 px-2 pb-4 border-t border-slate-100 dark:border-slate-800 pt-4">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-slate-100 dark:border-slate-800 pb-3 mb-1">
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Mode Tampilan</span>
+              <ThemeToggle showLabel />
+            </div>
             <Link 
               href="/" 
               className="block px-4 py-3 text-base font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors"
