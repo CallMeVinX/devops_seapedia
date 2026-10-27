@@ -141,25 +141,25 @@ docker login
 ### 2. Build Langsung dengan Tag Registry (atau gunakan `docker tag`)
 ```bash
 # Build & tag Backend
-docker build -t lordjmw/seapedia-backend:latest ./seapedia-backend
+docker build -t callmevin/seapedia-backend:latest ./seapedia-backend
 
 # Build & tag Frontend
-docker build -t lordjmw/seapedia-frontend:latest ./seapedia-frontend
+docker build -t callmevin/seapedia-frontend:latest ./seapedia-frontend
 ```
 
 *Atau jika image lokal sudah ada:*
 ```bash
-docker tag seapedia-backend lordjmw/seapedia-backend:latest
-docker tag seapedia-frontend lordjmw/seapedia-frontend:latest
+docker tag seapedia-backend callmevin/seapedia-backend:latest
+docker tag seapedia-frontend callmevin/seapedia-frontend:latest
 ```
 
 ### 3. Push Image ke Docker Hub
 ```bash
 # Push Backend
-docker push lordjmw/seapedia-backend:latest
+docker push callmevin/seapedia-backend:latest
 
 # Push Frontend
-docker push lordjmw/seapedia-frontend:latest
+docker push callmevin/seapedia-frontend:latest
 ```
 
 ---
