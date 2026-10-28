@@ -144,16 +144,39 @@ Pipeline akan otomatis berjalan ketika:
 - **Push Git Tag (misal: `v1.1.0`):** Menghasilkan image dengan tag versi release `v1.1.0` dan memperbarui `latest`.
 - **Manual Trigger (workflow_dispatch):** Dapat dijalankan manual dari tab *Actions* di GitHub dengan custom tag.
 
-### 3. Merilis Fitur Baru & Tag Baru via Git Tag
-Untuk merilis versi baru (contohnya `v1.1.0`):
+### 3. Panduan Rilis Versi dengan Git Tag (Release Management)
+
+Git Tag digunakan sebagai penanda (*milestone/checkpoint*) versi rilis resmi aplikasi. Pada repositori ini, push tag yang cocok dengan pola `v*.*.*` akan langsung memicu GitHub Actions untuk membuat dan mempublikasikan Docker Image dengan tag versi release tersebut.
+
+#### A. Alur Kerja Standar (Release Workflow)
+> ⚠️ **PENTING:** Git Tag menempel pada sebuah **commit**. Jika ada perubahan kode baru, perubahan tersebut **WAJIB di-`git add` dan di-`git commit` terlebih dahulu** sebelum membuat tag.
+
 ```bash
-git add .
-git commit -m "feat: add healthcheck endpoint and v1.1.0 version badge"
-git tag v1.1.0
-git push origin main
-git push origin v1.1.0
+1
 ```
-Setelah di-push, buka tab **Actions** di GitHub repository untuk melihat proses build dan push otomatis ke Docker Hub.
+
+#### B. Cheat Sheet Perintah Git Tag
+
+| Perintah | Deskripsi |
+| :--- | :--- |
+| `git tag` | Melihat daftar seluruh tag versi yang ada di lokal |
+| `git tag -l "v1.*"` | Mencari daftar tag dengan pola tertentu |
+| `git tag v1.0.0` | Membuat *lightweight tag* pada commit saat ini (`HEAD`) |
+| `git tag -a v1.0.0 -m "Release version 1.0.0"` | Membuat *annotated tag* (disertai pesan rilis dan metadata pembuat) |
+| `git show v1.0.0` | Melihat informasi detail commit yang ditandai oleh tag `v1.0.0` |
+| `git push origin v1.0.0` | Mendorong satu tag spesifik ke remote GitHub |
+| `git push origin --tags` | Mendorong seluruh tag lokal yang belum ada di remote |
+
+#### C. Cara Membatalkan / Menghapus Tag (Jika Terjadi Kesalahan Versi)
+Jika Anda salah memberi nama tag atau ingin membatalkan rilis tag tertentu:
+
+```bash
+# 1. Hapus tag dari lokal Anda
+git tag -d v1.0.0
+
+# 2. Hapus tag yang terlanjur terunggah di GitHub
+git push origin --delete v1.0.0
+```
 
 ---
 
