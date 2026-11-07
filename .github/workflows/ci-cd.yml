@@ -22,16 +22,17 @@ concurrency:
 
 jobs:
   # =========================================================================
-  # BACKEND CI/CD (Test, Lint, Build & Push Docker Image)
+  # STAGE 1: VERIFY (CI - Syntax, Type Check & Unit Tests)
   # =========================================================================
-  backend-pipeline:
-    name: Backend CI/CD (FastAPI)
+  verify:
+    name: Verify Stage (FastAPI & Next.js)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # --- Backend Verification (FastAPI / Python) ---
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -39,14 +40,53 @@ jobs:
           cache: 'pip'
           cache-dependency-path: 'seapedia-backend/requirements.txt'
 
-      - name: Install Dependencies
+      - name: Install Backend Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r seapedia-backend/requirements.txt
+          pip install pytest
 
-      - name: Syntax & Compilation Check (CI Validation)
+      - name: Backend Syntax & Compilation Check
         run: |
-          python -m py_compile seapedia-backend/app/main.py
+          python -m compileall seapedia-backend/app
+
+      - name: Run Backend Unit Tests
+        env:
+          ENVIRONMENT: development
+          SECRET_KEY: testsecretkey12345678901234567890
+        run: |
+          cd seapedia-backend
+          python -m pytest tests -v
+
+      # --- Frontend Verification (Next.js / Node.js) ---
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'seapedia-frontend/package-lock.json'
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd seapedia-frontend
+          npm ci
+
+      - name: Frontend Type Check (TypeScript)
+        run: |
+          cd seapedia-frontend
+          npx tsc --noEmit
+
+  # =========================================================================
+  # STAGE 2: BACKEND BUILD & PUSH (Docker)
+  # =========================================================================
+  backend-pipeline:
+    name: Backend Build & Push (FastAPI)
+    needs: verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -81,10 +121,11 @@ jobs:
           cache-to: type=gha,mode=max
 
   # =========================================================================
-  # FRONTEND CI/CD (Build & Push Docker Image)
+  # STAGE 2: FRONTEND BUILD & PUSH (Docker)
   # =========================================================================
   frontend-pipeline:
-    name: Frontend CI/CD (Next.js)
+    name: Frontend Build & Push (Next.js)
+    needs: verify
     runs-on: ubuntu-latest
 
     steps:
